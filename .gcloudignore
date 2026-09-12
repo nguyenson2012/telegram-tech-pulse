@@ -1,0 +1,13 @@
+# This file specifies files NOT uploaded to Google Cloud Build.
+# We intentionally do NOT include .gitignore here because
+# .gitignore has "server" which would wrongly exclude cmd/server/
+
+.gcloudignore
+.git/
+.gitignore
+
+# Exclude local build artifacts and secrets
+bin/
+.env
+*.tmp
+.DS_Store
