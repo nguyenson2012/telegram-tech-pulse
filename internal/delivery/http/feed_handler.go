@@ -88,3 +88,27 @@ func (h *FeedHandler) ToggleFeed(w http.ResponseWriter, r *http.Request) {
 		"is_active": req.IsActive,
 	})
 }
+
+// DeleteFeed handles DELETE /api/v1/feeds/{id}
+func (h *FeedHandler) DeleteFeed(w http.ResponseWriter, r *http.Request) {
+	feedID := chi.URLParam(r, "id")
+	if feedID == "" {
+		RespondError(w, http.StatusBadRequest, "missing feed id")
+		return
+	}
+
+	if err := h.feedUseCase.DeleteFeed(r.Context(), feedID); err != nil {
+		if errors.Is(err, entity.ErrFeedNotFound) {
+			RespondError(w, http.StatusNotFound, "feed not found")
+			return
+		}
+		RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	RespondJSON(w, http.StatusOK, map[string]interface{}{
+		"id":      feedID,
+		"deleted": true,
+	})
+}
+

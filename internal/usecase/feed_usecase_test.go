@@ -55,6 +55,16 @@ func (m *MockFeedRepo) UpdateFeedStatus(ctx context.Context, id string, isActive
 	return entity.ErrFeedNotFound
 }
 
+func (m *MockFeedRepo) DeleteFeed(ctx context.Context, id string) error {
+	for i, f := range m.feeds {
+		if f.ID == id {
+			m.feeds = append(m.feeds[:i], m.feeds[i+1:]...)
+			return nil
+		}
+	}
+	return entity.ErrFeedNotFound
+}
+
 func (m *MockFeedRepo) CreateArticle(ctx context.Context, article *entity.Article) error {
 	return nil
 }
@@ -120,3 +130,29 @@ func TestFeedUseCase_AddFeed(t *testing.T) {
 		t.Errorf("expected ErrFeedURLConflict, got: %v", err)
 	}
 }
+
+func TestFeedUseCase_DeleteFeed(t *testing.T) {
+	repo := &MockFeedRepo{}
+	parser := &MockRSSParser{}
+	uc := usecase.NewFeedUseCase(repo, parser)
+	ctx := context.Background()
+
+	feed, err := uc.AddFeed(ctx, usecase.AddFeedRequest{
+		URL:  "https://vnexpress.net/rss/khoa-hoc-cong-nghe.rss",
+		Name: "VnExpress",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error adding feed: %v", err)
+	}
+
+	// Delete existing feed
+	if err := uc.DeleteFeed(ctx, feed.ID); err != nil {
+		t.Fatalf("expected delete to succeed, got: %v", err)
+	}
+
+	// Delete non-existent feed
+	if err := uc.DeleteFeed(ctx, "non-existent-id"); err != entity.ErrFeedNotFound {
+		t.Errorf("expected ErrFeedNotFound, got: %v", err)
+	}
+}
+

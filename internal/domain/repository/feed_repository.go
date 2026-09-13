@@ -15,6 +15,7 @@ type FeedRepository interface {
 	GetActiveFeeds(ctx context.Context) ([]*entity.Feed, error)
 	GetAllFeeds(ctx context.Context) ([]*entity.Feed, error)
 	UpdateFeedStatus(ctx context.Context, id string, isActive bool) error
+	DeleteFeed(ctx context.Context, id string) error
 
 	// Article operations
 	CreateArticle(ctx context.Context, article *entity.Article) error

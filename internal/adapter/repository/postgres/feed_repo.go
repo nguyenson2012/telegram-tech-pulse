@@ -119,6 +119,23 @@ func (r *feedRepo) UpdateFeedStatus(ctx context.Context, id string, isActive boo
 	return nil
 }
 
+func (r *feedRepo) DeleteFeed(ctx context.Context, id string) error {
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return entity.ErrFeedNotFound
+	}
+
+	res := r.db.WithContext(ctx).Delete(&FeedModel{}, "id = ?", uid)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return entity.ErrFeedNotFound
+	}
+
+	return nil
+}
+
 func (r *feedRepo) CreateArticle(ctx context.Context, article *entity.Article) error {
 	articleID, err := uuid.NewRandom()
 	if err != nil {

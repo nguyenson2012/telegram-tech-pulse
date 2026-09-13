@@ -76,3 +76,9 @@ func (uc *FeedUseCase) ListFeeds(ctx context.Context) ([]*entity.Feed, error) {
 func (uc *FeedUseCase) ToggleFeedStatus(ctx context.Context, id string, isActive bool) error {
 	return uc.feedRepo.UpdateFeedStatus(ctx, id, isActive)
 }
+
+// DeleteFeed permanently removes a feed by ID.
+func (uc *FeedUseCase) DeleteFeed(ctx context.Context, id string) error {
+	return uc.feedRepo.DeleteFeed(ctx, id)
+}
+

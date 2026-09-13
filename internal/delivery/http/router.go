@@ -66,6 +66,7 @@ func NewRouter(cfg RouterConfig) http.Handler {
 			f.Post("/", cfg.FeedHandler.AddFeed)
 			f.Get("/", cfg.FeedHandler.ListFeeds)
 			f.Patch("/{id}", cfg.FeedHandler.ToggleFeed)
+			f.Delete("/{id}", cfg.FeedHandler.DeleteFeed)
 		})
 
 		// Semantic Vector Search

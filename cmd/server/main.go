@@ -19,6 +19,7 @@ import (
 	"github.com/ai-tech-pulse/digest/internal/config"
 	cronDelivery "github.com/ai-tech-pulse/digest/internal/delivery/cron"
 	httpDelivery "github.com/ai-tech-pulse/digest/internal/delivery/http"
+	telegramDelivery "github.com/ai-tech-pulse/digest/internal/delivery/telegram"
 	"github.com/ai-tech-pulse/digest/internal/usecase"
 )
 
@@ -84,6 +85,19 @@ func main() {
 		log.Printf("[Init] Warning: could not start cron scheduler: %v", err)
 	}
 
+	// 6b. Initialize Telegram Bot Command Listener (Feed management)
+	var telegramListener *telegramDelivery.Listener
+	if cfg.TelegramBotToken != "" {
+		telegramListener = telegramDelivery.NewListener(
+			cfg.TelegramBotToken,
+			cfg.TelegramChatID,
+			feedUseCase,
+			pipelineUseCase,
+		)
+		telegramListener.Start(rootCtx)
+		log.Println("[Init] Telegram Bot Command Listener started.")
+	}
+
 	// Run pipeline on startup if enabled via env
 	if cfg.RunPipelineOnStartup {
 		log.Println("[Init] RUN_PIPELINE_ON_STARTUP is enabled. Enqueuing pipeline run...")
@@ -135,9 +149,13 @@ func main() {
 		log.Printf("[Shutdown] HTTP server forced shutdown error: %v", err)
 	}
 
-	// B. Stop Cron
+	// B. Stop Cron & Telegram Listener
 	log.Println("[Shutdown] Stopping Cron scheduler...")
 	cronScheduler.Stop()
+	if telegramListener != nil {
+		log.Println("[Shutdown] Stopping Telegram Bot listener...")
+		telegramListener.Stop()
+	}
 
 	// C. Stop Job Queue (drain workers)
 	log.Println("[Shutdown] Draining Job Queue...")
